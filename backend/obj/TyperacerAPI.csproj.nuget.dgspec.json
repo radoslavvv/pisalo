@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\monop\\Desktop\\shtrakaloto\\backend\\TyperacerAPI.csproj": {}
+    "C:\\Users\\monop\\Desktop\\pisalo\\backend\\TyperacerAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\monop\\Desktop\\shtrakaloto\\backend\\TyperacerAPI.csproj": {
+    "C:\\Users\\monop\\Desktop\\pisalo\\backend\\TyperacerAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\monop\\Desktop\\shtrakaloto\\backend\\TyperacerAPI.csproj",
+        "projectUniqueName": "C:\\Users\\monop\\Desktop\\pisalo\\backend\\TyperacerAPI.csproj",
         "projectName": "TyperacerAPI",
-        "projectPath": "C:\\Users\\monop\\Desktop\\shtrakaloto\\backend\\TyperacerAPI.csproj",
+        "projectPath": "C:\\Users\\monop\\Desktop\\pisalo\\backend\\TyperacerAPI.csproj",
         "packagesPath": "C:\\Users\\monop\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\monop\\Desktop\\shtrakaloto\\backend\\obj\\",
+        "outputPath": "C:\\Users\\monop\\Desktop\\pisalo\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\monop\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -46,9 +46,31 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "AspNet.Security.OAuth.GitHub": {
+              "target": "Package",
+              "version": "[9.2.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.Google": {
+              "target": "Package",
+              "version": "[10.0.2, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[10.0.2, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[10.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.4, )"
             }
           },
           "imports": [
