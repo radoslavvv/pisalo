@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TyperacerAPI.Data;
 using TyperacerAPI.Endpoints;
+using TyperacerAPI.Hubs;
 using TyperacerAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +42,21 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+    
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 })
 .AddGoogle("Google", options =>
 {
@@ -57,6 +73,11 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// SignalR
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IRoomService, RoomService>();
+builder.Services.AddSingleton<IWordService, WordService>();
 
 // CORS
 var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
@@ -91,5 +112,8 @@ app.MapAuthEndpoints();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .WithTags("Health")
     .AllowAnonymous();
+
+// SignalR hubs
+app.MapHub<GameHub>("/hubs/game");
 
 app.Run();

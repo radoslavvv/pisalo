@@ -58,3 +58,36 @@ export interface GameStats {
   totalWords: number
   errors: number
 }
+
+export interface Player {
+  id: string
+  username: string
+}
+
+export interface PlayerProgress {
+  playerId: string
+  username: string
+  currentWordIndex: number
+  currentCharIndex: number
+  wpm: number
+  errors: number
+  isFinished: boolean
+}
+
+export interface PlayerResult {
+  id: string
+  username: string
+  wordsTyped: number
+  wpm: number
+  accuracy: number
+  elapsedMs: number
+  isWinner: boolean
+}
+
+export interface GameEndedResult {
+  winner: PlayerResult
+  loser: PlayerResult
+}
+
+export type RoomStatus = 'idle' | 'waiting' | 'countdown' | 'playing' | 'finished'
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting'

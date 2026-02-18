@@ -1,0 +1,15 @@
+/node_modules
+/dist
+/build
+out
+bin
+obj
+/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+Migrations
