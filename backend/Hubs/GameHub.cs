@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
+using TyperacerAPI.Data;
 using TyperacerAPI.Entities;
 using TyperacerAPI.Services;
 
@@ -22,12 +24,14 @@ public class GameHub : Hub
     private readonly IRoomService _roomService;
     private readonly IWordService _wordService;
     private readonly ILogger<GameHub> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public GameHub(IRoomService roomService, IWordService wordService, ILogger<GameHub> logger)
+    public GameHub(IRoomService roomService, IWordService wordService, ILogger<GameHub> logger, IServiceScopeFactory scopeFactory)
     {
         _roomService = roomService;
         _wordService = wordService;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     public override async Task OnConnectedAsync()
@@ -301,7 +305,56 @@ public class GameHub : Hub
             _logger.LogInformation("Game ended in room {RoomCode}. Winner: {Winner} (Score: {WinnerScore:F2} vs {LoserScore:F2})", 
                 room.RoomCode, winner.Username, winner.IsWinner ? myScore : opponentScore, winner.IsWinner ? opponentScore : myScore);
             
+            await SaveGameResultsAsync(room.Id, winner, loser, stats.TotalWords);
+            
             _roomService.RemoveRoom(room.RoomCode);
+        }
+    }
+
+    private async Task SaveGameResultsAsync(Guid roomId, PlayerResultDto winner, PlayerResultDto loser, int totalWords)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var winnerResult = GameResult.Create(
+                roomId: roomId,
+                playerId: winner.Id,
+                playerUsername: winner.Username,
+                wordsTyped: winner.WordsTyped,
+                totalWords: totalWords,
+                errors: (int)((100 - winner.Accuracy) / 2),
+                wpm: winner.Wpm,
+                accuracy: winner.Accuracy,
+                elapsedMs: winner.ElapsedMs,
+                isWinner: true,
+                gameMode: "multiplayer"
+            );
+
+            var loserResult = GameResult.Create(
+                roomId: roomId,
+                playerId: loser.Id,
+                playerUsername: loser.Username,
+                wordsTyped: loser.WordsTyped,
+                totalWords: totalWords,
+                errors: (int)((100 - loser.Accuracy) / 2),
+                wpm: loser.Wpm,
+                accuracy: loser.Accuracy,
+                elapsedMs: loser.ElapsedMs,
+                isWinner: false,
+                gameMode: "multiplayer"
+            );
+
+            dbContext.GameResults.Add(winnerResult);
+            dbContext.GameResults.Add(loserResult);
+            await dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Saved game results for room {RoomId}", roomId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save game results for room {RoomId}", roomId);
         }
     }
 

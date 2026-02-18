@@ -107,6 +107,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Seed database in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DatabaseSeeder.SeedAsync(dbContext);
+}
+
 // Configure middleware pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -123,6 +131,7 @@ app.UseAuthorization();
 
 // Map endpoints
 app.MapAuthEndpoints();
+app.MapLeaderboardEndpoints();
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))

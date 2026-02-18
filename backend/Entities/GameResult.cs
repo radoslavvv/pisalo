@@ -14,6 +14,7 @@ public class GameResult
     public long ElapsedMs { get; private set; }
     public bool IsWinner { get; private set; }
     public DateTime CompletedAt { get; private set; }
+    public string GameMode { get; private set; } = string.Empty;
 
     private GameResult() { }
 
@@ -27,7 +28,9 @@ public class GameResult
         double wpm,
         double accuracy,
         long elapsedMs,
-        bool isWinner)
+        bool isWinner,
+        string gameMode,
+        DateTime? completedAt = null)
     {
         return new GameResult
         {
@@ -42,7 +45,8 @@ public class GameResult
             Accuracy = accuracy,
             ElapsedMs = elapsedMs,
             IsWinner = isWinner,
-            CompletedAt = DateTime.UtcNow
+            CompletedAt = completedAt ?? DateTime.UtcNow,
+            GameMode = gameMode
         };
     }
 }

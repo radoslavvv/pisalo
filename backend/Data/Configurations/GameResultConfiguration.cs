@@ -16,8 +16,14 @@ public class GameResultConfiguration : IEntityTypeConfiguration<GameResult>
             .IsRequired()
             .HasMaxLength(50);
 
+        builder.Property(r => r.GameMode)
+            .IsRequired()
+            .HasMaxLength(20);
+
         builder.HasIndex(r => r.RoomId);
         builder.HasIndex(r => r.PlayerId);
         builder.HasIndex(r => r.CompletedAt);
+        builder.HasIndex(r => r.GameMode);
+        builder.HasIndex(r => new { r.GameMode, r.CompletedAt, r.Wpm });
     }
 }

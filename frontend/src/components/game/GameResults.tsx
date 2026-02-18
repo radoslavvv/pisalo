@@ -1,14 +1,51 @@
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useGameStore } from '../../store/gameStore'
 import { useGameStats } from '../../hooks/useGameStats'
+import { useAuthStore } from '../../store/authStore'
+import { gameService } from '../../services/gameService'
 
 interface GameResultsProps {
   onRestart: () => void
 }
 
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
 export default function GameResults({ onRestart }: GameResultsProps) {
   const mode = useGameStore((state) => state.mode)
   const stats = useGameStats()
+  const user = useAuthStore((state) => state.user)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const hasSaved = useRef(false)
+
+  useEffect(() => {
+    const saveResult = async () => {
+      if (hasSaved.current) return
+      if (!gameService.canSaveResult()) return
+      if (mode === 'zen') return
+
+      hasSaved.current = true
+      setSaveStatus('saving')
+
+      try {
+        await gameService.saveResult({
+          gameMode: mode || 'timed',
+          wordsTyped: stats.wordsTyped,
+          totalWords: stats.totalWords,
+          errors: stats.errors,
+          wpm: stats.wpm,
+          accuracy: stats.accuracy,
+          elapsedMs: stats.elapsedTime * 1000,
+        })
+        setSaveStatus('saved')
+      } catch (error) {
+        console.error('Failed to save result:', error)
+        setSaveStatus('error')
+      }
+    }
+
+    saveResult()
+  }, [mode, stats])
 
   const ResultRow = ({ label, value, highlight = false }: { 
     label: string
@@ -52,6 +89,49 @@ export default function GameResults({ onRestart }: GameResultsProps) {
         <ResultRow label="Words Typed" value={stats.wordsTyped} />
         <ResultRow label="Errors" value={stats.errors} />
       </div>
+
+      {mode !== 'zen' && (
+        <div className="mb-6">
+          {saveStatus === 'saving' && (
+            <div className="flex items-center justify-center gap-2 text-sm text-[var(--color-gray-400)]">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Saving to leaderboard...
+            </div>
+          )}
+          {saveStatus === 'saved' && (
+            <div className="flex items-center justify-center gap-2 text-sm text-green-400">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Result saved to leaderboard!
+            </div>
+          )}
+          {saveStatus === 'error' && (
+            <div className="flex items-center justify-center gap-2 text-sm text-red-400">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Failed to save result
+            </div>
+          )}
+          {saveStatus === 'idle' && !user && (
+            <div className="text-center text-sm text-[var(--color-gray-400)]">
+              <Link to="/" className="text-[var(--color-amber-400)] hover:underline">
+                Sign in
+              </Link>{' '}
+              to save your scores to the leaderboard
+            </div>
+          )}
+          {saveStatus === 'idle' && user?.isGuest && (
+            <div className="text-center text-sm text-[var(--color-gray-400)]">
+              Guest scores are not saved to the leaderboard
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex gap-3">
         <button
