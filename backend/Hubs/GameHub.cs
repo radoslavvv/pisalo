@@ -17,7 +17,6 @@ public record PlayerFinishedDto(int WordsTyped, int TotalWords, int Errors, doub
 public record GameEndedResponse(PlayerResultDto Winner, PlayerResultDto Loser);
 public record PlayerResultDto(Guid Id, string Username, int WordsTyped, double Wpm, double Accuracy, long ElapsedMs, bool IsWinner);
 
-[Authorize]
 public class GameHub : Hub
 {
     private readonly IRoomService _roomService;
@@ -284,21 +283,33 @@ public class GameHub : Hub
         }
     }
 
+    private static readonly Dictionary<string, Guid> _connectionUserIds = new();
+
     private Guid GetUserId()
     {
         var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value 
             ?? Context.User?.FindFirst("sub")?.Value;
         
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            throw new HubException("User not authenticated");
-        
-        return userId;
+        if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
+            return userId;
+
+        if (!_connectionUserIds.TryGetValue(Context.ConnectionId, out var guestId))
+        {
+            guestId = Guid.NewGuid();
+            _connectionUserIds[Context.ConnectionId] = guestId;
+        }
+        return guestId;
     }
 
     private string GetUsername()
     {
-        return Context.User?.FindFirst(ClaimTypes.Name)?.Value 
-            ?? Context.User?.FindFirst("name")?.Value 
-            ?? "Anonymous";
+        var username = Context.User?.FindFirst(ClaimTypes.Name)?.Value 
+            ?? Context.User?.FindFirst("name")?.Value;
+        
+        if (!string.IsNullOrEmpty(username))
+            return username;
+
+        var guestNumber = Math.Abs(GetUserId().GetHashCode() % 10000);
+        return $"Guest_{guestNumber}";
     }
 }

@@ -85,7 +85,13 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(frontendUrl)
+        policy.WithOrigins(
+                frontendUrl,
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:5175",
+                "http://localhost:5176"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -99,8 +105,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

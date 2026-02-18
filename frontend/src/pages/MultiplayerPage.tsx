@@ -16,19 +16,14 @@ export default function MultiplayerPage() {
   const [phase, setPhase] = useState<MultiplayerPhase>('lobby')
   
   const connect = useMultiplayerStore((state) => state.connect)
-  const disconnect = useMultiplayerStore((state) => state.disconnect)
   const connectionStatus = useMultiplayerStore((state) => state.connectionStatus)
   const roomStatus = useMultiplayerStore((state) => state.roomStatus)
   const reset = useMultiplayerStore((state) => state.reset)
 
   useEffect(() => {
-    const token = localStorage.getItem('token') || 'guest-token'
+    const token = localStorage.getItem('token') || undefined
     connect(token)
-    
-    return () => {
-      disconnect()
-    }
-  }, [connect, disconnect])
+  }, [connect])
 
   useEffect(() => {
     if (roomStatus === 'countdown' || roomStatus === 'playing') {

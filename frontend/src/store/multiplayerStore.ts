@@ -30,7 +30,7 @@ interface MultiplayerState {
 }
 
 interface MultiplayerActions {
-  connect: (token: string) => Promise<void>
+  connect: (token?: string) => Promise<void>
   disconnect: () => Promise<void>
   createRoom: () => Promise<void>
   joinRoom: (roomCode: string) => Promise<boolean>
@@ -133,7 +133,7 @@ export const useMultiplayerStore = create<MultiplayerState & MultiplayerActions>
   return {
     ...initialState,
 
-    connect: async (token: string) => {
+    connect: async (token?: string) => {
       setupListeners()
       await signalRService.connect(token)
     },

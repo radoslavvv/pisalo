@@ -6,7 +6,7 @@ import type {
 	GameEndedResult,
 } from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://localhost:5042";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5042";
 
 export interface CreateRoomResponse {
 	roomCode: string;
@@ -46,38 +46,30 @@ export interface PlayerFinishedStats {
 	elapsedMs: number;
 }
 
-type ConnectionStatusCallback = (
-	status: "disconnected" | "connecting" | "connected" | "reconnecting",
-) => void;
-type ErrorCallback = (error: string) => void;
-type RoomCreatedCallback = (response: CreateRoomResponse) => void;
-type PlayerJoinedCallback = (player: Player) => void;
-type JoinedRoomCallback = (response: JoinRoomResponse) => void;
-type JoinFailedCallback = (reason: string) => void;
-type PlayerLeftCallback = () => void;
-type RoomClosedCallback = (reason: string) => void;
-type GameStartingCallback = (response: GameStartingResponse) => void;
-type GameStartedCallback = (response: GameStartedResponse) => void;
-type OpponentProgressCallback = (progress: PlayerProgress) => void;
-type OpponentFinishedCallback = (result: PlayerResult) => void;
-type GameEndedCallback = (result: GameEndedResult) => void;
-
 class SignalRService {
 	private connection: signalR.HubConnection | null = null;
 	private callbacks: Map<string, Set<(...args: unknown[]) => void>> =
 		new Map();
+	private isConnecting = false;
 
-	async connect(token: string): Promise<void> {
+	async connect(token?: string): Promise<void> {
 		if (this.connection?.state === signalR.HubConnectionState.Connected) {
 			return;
 		}
 
+		if (this.isConnecting) {
+			return;
+		}
+
+		this.isConnecting = true;
 		this.emit("connectionStatus", "connecting");
 
+		const url = token
+			? `${API_URL}/hubs/game?access_token=${encodeURIComponent(token)}`
+			: `${API_URL}/hubs/game`;
+
 		this.connection = new signalR.HubConnectionBuilder()
-			.withUrl(
-				`${API_URL}/hubs/game?access_token=${encodeURIComponent(token)}`,
-			)
+			.withUrl(url)
 			.withAutomaticReconnect({
 				nextRetryDelayInMilliseconds: (retryContext) => {
 					if (retryContext.elapsedMilliseconds < 60000) {
@@ -89,7 +81,7 @@ class SignalRService {
 					return null;
 				},
 			})
-			.configureLogging(signalR.LogLevel.Information)
+			.configureLogging(signalR.LogLevel.Warning)
 			.build();
 
 		this.setupEventHandlers();
@@ -99,15 +91,18 @@ class SignalRService {
 			this.emit("connectionStatus", "connected");
 		} catch (error) {
 			this.emit("connectionStatus", "disconnected");
-			this.emit(
-				"error",
-				error instanceof Error ? error.message : "Failed to connect",
-			);
-			throw error;
+			if (error instanceof Error && !error.message.includes("stopped during negotiation")) {
+				this.emit("error", error.message);
+			}
+		} finally {
+			this.isConnecting = false;
 		}
 	}
 
 	async disconnect(): Promise<void> {
+		if (this.isConnecting) {
+			return;
+		}
 		if (this.connection) {
 			await this.connection.stop();
 			this.connection = null;
@@ -210,17 +205,6 @@ class SignalRService {
 		await this.connection.invoke("PlayerFinished", stats);
 	}
 
-	on(event: "connectionStatus", callback: ConnectionStatusCallback): void;
-	on(event: "error", callback: ErrorCallback): void;
-	on(event: "playerJoined", callback: PlayerJoinedCallback): void;
-	on(event: "joinFailed", callback: JoinFailedCallback): void;
-	on(event: "playerLeft", callback: PlayerLeftCallback): void;
-	on(event: "roomClosed", callback: RoomClosedCallback): void;
-	on(event: "gameStarting", callback: GameStartingCallback): void;
-	on(event: "gameStarted", callback: GameStartedCallback): void;
-	on(event: "opponentProgress", callback: OpponentProgressCallback): void;
-	on(event: "opponentFinished", callback: OpponentFinishedCallback): void;
-	on(event: "gameEnded", callback: GameEndedCallback): void;
 	on(event: string, callback: (...args: unknown[]) => void): void {
 		if (!this.callbacks.has(event)) {
 			this.callbacks.set(event, new Set());
