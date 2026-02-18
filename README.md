@@ -5,11 +5,11 @@ A modern typing speed test and racing game with real-time multiplayer support. C
 ## Features
 
 - **Multiple Game Modes**
-  - **Timed Mode** — Race against the clock (15s, 30s, or 60s)
-  - **Word Count** — Complete a set number of words (25, 50, or 100)
-  - **Zen Mode** — Practice without pressure, no timer or stats
-  - **Instant Death** — One mistake ends the game
-  - **Multiplayer** — Real-time races against other players
+    - **Timed Mode** — Race against the clock (15s, 30s, or 60s)
+    - **Word Count** — Complete a set number of words (25, 50, or 100)
+    - **Zen Mode** — Practice without pressure, no timer or stats
+    - **Instant Death** — One mistake ends the game
+    - **Multiplayer** — Real-time races against other players
 
 - **Real-time Multiplayer** — Race against friends or strangers with live progress tracking
 - **Leaderboards** — Compete for the top WPM scores (daily/all-time)
@@ -21,23 +21,29 @@ A modern typing speed test and racing game with real-time multiplayer support. C
 <!-- Replace placeholder paths with actual screenshots -->
 
 ### Home Page
-![Home Page](screenshots/home.png)
+
+![Home Page](screenshots/home.PNG)
 
 ### Typing Game
-![Typing Game](screenshots/game.png)
+
+![Typing Game](screenshots/game.PNG)
 
 ### Game Results
-![Game Results](screenshots/results.png)
+
+![Game Results](screenshots/results.PNG)
 
 ### Multiplayer Race
-![Multiplayer Race](screenshots/multiplayer.png)
+
+![Multiplayer Race](screenshots/multiplayer.PNG)
 
 ### Leaderboard
-![Leaderboard](screenshots/leaderboard.png)
+
+![Leaderboard](screenshots/leaderboard.PNG)
 
 ## Tech Stack
 
 ### Frontend
+
 - React 19 with TypeScript
 - Vite 7
 - Tailwind CSS 4
@@ -46,6 +52,7 @@ A modern typing speed test and racing game with real-time multiplayer support. C
 - SignalR (real-time communication)
 
 ### Backend
+
 - .NET 10 (Minimal API)
 - Entity Framework Core
 - PostgreSQL 16
@@ -145,11 +152,11 @@ pisalo/
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/api/leaderboard` | Get leaderboard entries |
-| POST | `/api/auth/github` | GitHub OAuth flow |
+| Method | Endpoint           | Description             |
+| ------ | ------------------ | ----------------------- |
+| GET    | `/health`          | Health check            |
+| GET    | `/api/leaderboard` | Get leaderboard entries |
+| POST   | `/api/auth/github` | GitHub OAuth flow       |
 
 ### SignalR Hubs
 
@@ -159,17 +166,17 @@ pisalo/
 
 ### Backend (`backend/.env`)
 
-| Variable | Description |
-|----------|-------------|
-| `OAuth__GitHub__ClientId` | GitHub OAuth app client ID |
-| `OAuth__GitHub__ClientSecret` | GitHub OAuth app client secret |
-| `JwtSettings__Secret` | Secret key for JWT signing (min 32 chars) |
-| `ConnectionStrings__DefaultConnection` | PostgreSQL connection string |
+| Variable                               | Description                               |
+| -------------------------------------- | ----------------------------------------- |
+| `OAuth__GitHub__ClientId`              | GitHub OAuth app client ID                |
+| `OAuth__GitHub__ClientSecret`          | GitHub OAuth app client secret            |
+| `JwtSettings__Secret`                  | Secret key for JWT signing (min 32 chars) |
+| `ConnectionStrings__DefaultConnection` | PostgreSQL connection string              |
 
 ### Frontend (`frontend/.env`)
 
-| Variable | Description |
-|----------|-------------|
+| Variable       | Description                                        |
+| -------------- | -------------------------------------------------- |
 | `VITE_API_URL` | Backend API URL (default: `http://localhost:5042`) |
 
 ## License
