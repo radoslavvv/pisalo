@@ -5,6 +5,7 @@ import type {
 	PlayerResult,
 	GameEndedResult,
 } from "../types";
+import { useAuthStore } from "../store/authStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5042";
 
@@ -64,8 +65,9 @@ class SignalRService {
 		this.isConnecting = true;
 		this.emit("connectionStatus", "connecting");
 
-		const url = token
-			? `${API_URL}/hubs/game?access_token=${encodeURIComponent(token)}`
+		const authToken = token || useAuthStore.getState().token;
+		const url = authToken
+			? `${API_URL}/hubs/game?access_token=${encodeURIComponent(authToken)}`
 			: `${API_URL}/hubs/game`;
 
 		this.connection = new signalR.HubConnectionBuilder()

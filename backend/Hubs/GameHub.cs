@@ -325,7 +325,8 @@ public class GameHub : Hub
 
     private string GetUsername()
     {
-        var username = Context.User?.FindFirst(ClaimTypes.Name)?.Value 
+        var username = Context.User?.FindFirst("username")?.Value 
+            ?? Context.User?.FindFirst(ClaimTypes.Name)?.Value 
             ?? Context.User?.FindFirst("name")?.Value;
         
         if (!string.IsNullOrEmpty(username))

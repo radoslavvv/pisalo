@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +7,9 @@ using TyperacerAPI.Data;
 using TyperacerAPI.Endpoints;
 using TyperacerAPI.Hubs;
 using TyperacerAPI.Services;
+
+// Load en// Load environment variables from .env file
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +32,15 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.Cookie.Name = "pisalo_oauth_temp";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 })
 .AddJwtBearer(options =>
 {
@@ -57,12 +70,6 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         }
     };
-})
-.AddGoogle("Google", options =>
-{
-    options.ClientId = builder.Configuration["OAuth:Google:ClientId"] ?? "";
-    options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"] ?? "";
-    options.CallbackPath = "/signin-google";
 })
 .AddGitHub("GitHub", options =>
 {
