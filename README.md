@@ -16,6 +16,25 @@ A modern typing speed test and racing game with real-time multiplayer support. C
 - **GitHub OAuth** — Sign in with your GitHub account
 - **Modern UI** — Clean, responsive design with smooth animations
 
+## Screenshots
+
+<!-- Replace placeholder paths with actual screenshots -->
+
+### Home Page
+![Home Page](screenshots/home.png)
+
+### Typing Game
+![Typing Game](screenshots/game.png)
+
+### Game Results
+![Game Results](screenshots/results.png)
+
+### Multiplayer Race
+![Multiplayer Race](screenshots/multiplayer.png)
+
+### Leaderboard
+![Leaderboard](screenshots/leaderboard.png)
+
 ## Tech Stack
 
 ### Frontend
