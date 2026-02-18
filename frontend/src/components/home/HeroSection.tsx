@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { leaderboardService } from '../../services/leaderboardService'
 
 const phrases = [
   'Test Your Typing Speed',
@@ -12,6 +13,8 @@ export default function HeroSection() {
   const [currentPhrase, setCurrentPhrase] = useState(0)
   const [displayText, setDisplayText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
+  const [gamesToday, setGamesToday] = useState<number | null>(null)
+  const [topWpm, setTopWpm] = useState<number | null>(null)
 
   useEffect(() => {
     const phrase = phrases[currentPhrase]
@@ -39,6 +42,38 @@ export default function HeroSection() {
     }
   }, [displayText, isTyping, currentPhrase])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchDailyStats() {
+      try {
+        const res = await leaderboardService.getLeaderboard({
+          period: 'daily',
+          page: 1,
+          pageSize: 1,
+        })
+        if (!cancelled) {
+          setGamesToday(res.totalCount)
+          setTopWpm(res.entries[0]?.wpm ?? null)
+        }
+      } catch {
+        if (!cancelled) {
+          setGamesToday(null)
+          setTopWpm(null)
+        }
+      }
+    }
+
+    fetchDailyStats()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const gamesTodayFormatted =
+    gamesToday !== null ? gamesToday.toLocaleString() : '—'
+  const topWpmFormatted = topWpm !== null ? topWpm : '—'
+
   return (
     <section className="relative overflow-hidden px-4 py-20 sm:px-6 sm:py-32">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--color-charcoal-800)_0%,transparent_70%)]" />
@@ -58,10 +93,10 @@ export default function HeroSection() {
 
         <div className="animate-fade-in-up stagger-2 flex flex-col items-center justify-center gap-4 opacity-0 sm:flex-row">
           <Link
-            to="/game/timed?duration=30"
+            to="/game/word-count?value=25"
             className="group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-[var(--color-amber-500)] px-8 py-4 font-semibold text-[var(--color-charcoal-950)] transition-all hover:bg-[var(--color-amber-400)]"
           >
-            <span className="relative z-10">Quick Start — 30s Race</span>
+            <span className="relative z-10">Quick Start — 25 Words race</span>
             <div className="absolute inset-0 -translate-x-full bg-[var(--color-amber-400)] transition-transform group-hover:translate-x-0" />
           </Link>
 
@@ -78,12 +113,16 @@ export default function HeroSection() {
 
         <div className="animate-fade-in stagger-3 mt-16 flex items-center justify-center gap-8 text-sm text-[var(--color-gray-500)] opacity-0">
           <div className="flex items-center gap-2">
-            <span className="font-[var(--font-mono)] text-2xl font-bold text-white">1,247</span>
+            <span className="font-[var(--font-mono)] text-2xl font-bold text-white">
+              {gamesTodayFormatted}
+            </span>
             <span>games today</span>
           </div>
           <div className="h-8 w-px bg-[var(--color-charcoal-700)]" />
           <div className="flex items-center gap-2">
-            <span className="font-[var(--font-mono)] text-2xl font-bold text-[var(--color-amber-400)]">156</span>
+            <span className="font-[var(--font-mono)] text-2xl font-bold text-[var(--color-amber-400)]">
+              {topWpmFormatted}
+            </span>
             <span>top WPM</span>
           </div>
         </div>

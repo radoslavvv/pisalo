@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { authService } from "../../services/authService";
 
 interface LoginModalProps {
@@ -7,26 +6,7 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-	const [guestName, setGuestName] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
-
 	if (!isOpen) return null;
-
-	const handleGuestLogin = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (isLoading) return;
-
-		setIsLoading(true);
-		try {
-			await authService.loginAsGuest(guestName || undefined);
-			onClose();
-		} catch (error) {
-			console.error("Guest login failed:", error);
-			alert("Failed to create guest session. Please try again.");
-		} finally {
-			setIsLoading(false);
-		}
-	};
 
 	const handleGitHubLogin = () => {
 		authService.loginWithGitHub();

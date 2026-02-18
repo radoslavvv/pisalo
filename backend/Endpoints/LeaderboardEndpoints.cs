@@ -73,8 +73,11 @@ public static class LeaderboardEndpoints
 
         var totalCount = await query.CountAsync();
 
+        // Primary sort: effective WPM (WPM × accuracy) so both speed and accuracy matter
+        // Then by raw WPM, then accuracy for tie-breaking
         var results = await query
-            .OrderByDescending(r => r.Wpm)
+            .OrderByDescending(r => r.Wpm * r.Accuracy / 100.0)
+            .ThenByDescending(r => r.Wpm)
             .ThenByDescending(r => r.Accuracy)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
