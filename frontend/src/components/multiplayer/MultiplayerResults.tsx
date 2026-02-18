@@ -7,7 +7,7 @@ interface MultiplayerResultsProps {
 
 export default function MultiplayerResults({ onPlayAgain }: MultiplayerResultsProps) {
   const gameResult = useMultiplayerStore((state) => state.gameResult)
-  const host = useMultiplayerStore((state) => state.host)
+  const currentUserId = useMultiplayerStore((state) => state.currentUserId)
   const reset = useMultiplayerStore((state) => state.reset)
 
   if (!gameResult) {
@@ -19,7 +19,7 @@ export default function MultiplayerResults({ onPlayAgain }: MultiplayerResultsPr
   }
 
   const { winner, loser } = gameResult
-  const isWinner = winner.id === host?.id
+  const isWinner = winner.id === currentUserId
 
   const ResultCard = ({ player, isTop }: { player: typeof winner, isTop: boolean }) => (
     <div className={`rounded-xl border p-6 ${

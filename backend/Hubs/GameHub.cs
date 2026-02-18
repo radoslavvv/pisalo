@@ -243,6 +243,8 @@ public class GameHub : Hub
         {
             var updatedRoom = _roomService.FinishGame(room.RoomCode);
             
+            var opponentAccuracy = 100 - (opponentProgress.Errors * 2.0);
+            
             var myResult = new PlayerResultDto(
                 userId, 
                 username, 
@@ -250,7 +252,7 @@ public class GameHub : Hub
                 stats.Wpm, 
                 stats.Accuracy, 
                 stats.ElapsedMs, 
-                stats.ElapsedMs <= (opponentProgress.Wpm > 0 ? stats.ElapsedMs : long.MaxValue)
+                false
             );
             
             var opponentResult = new PlayerResultDto(
@@ -258,26 +260,46 @@ public class GameHub : Hub
                 opponentProgress.Username,
                 opponentProgress.CurrentWordIndex,
                 opponentProgress.Wpm,
-                100 - (opponentProgress.Errors * 2.0),
+                opponentAccuracy,
                 0,
-                opponentProgress.Wpm >= stats.Wpm
+                false
             );
 
+            // Calculate score: WPM * (Accuracy / 100)
+            // This rewards both speed and accuracy
+            var myScore = stats.Wpm * (stats.Accuracy / 100.0);
+            var opponentScore = opponentProgress.Wpm * (opponentAccuracy / 100.0);
+
             PlayerResultDto winner, loser;
-            if (stats.Wpm >= opponentProgress.Wpm)
+            if (myScore > opponentScore)
             {
                 winner = myResult with { IsWinner = true };
                 loser = opponentResult with { IsWinner = false };
             }
-            else
+            else if (myScore < opponentScore)
             {
                 winner = opponentResult with { IsWinner = true };
                 loser = myResult with { IsWinner = false };
             }
+            else
+            {
+                // Tie - highest WPM wins
+                if (stats.Wpm >= opponentProgress.Wpm)
+                {
+                    winner = myResult with { IsWinner = true };
+                    loser = opponentResult with { IsWinner = false };
+                }
+                else
+                {
+                    winner = opponentResult with { IsWinner = true };
+                    loser = myResult with { IsWinner = false };
+                }
+            }
 
             await Clients.Group(room.RoomCode).SendAsync("GameEnded", new GameEndedResponse(winner, loser));
             
-            _logger.LogInformation("Game ended in room {RoomCode}. Winner: {Winner}", room.RoomCode, winner.Username);
+            _logger.LogInformation("Game ended in room {RoomCode}. Winner: {Winner} (Score: {WinnerScore:F2} vs {LoserScore:F2})", 
+                room.RoomCode, winner.Username, winner.IsWinner ? myScore : opponentScore, winner.IsWinner ? opponentScore : myScore);
             
             _roomService.RemoveRoom(room.RoomCode);
         }
